@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import './map.dart';
+import './location_search_screen.dart';
 
 void main() {
   runApp(const MyApp());

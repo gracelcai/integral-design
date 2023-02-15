@@ -3,9 +3,15 @@ import 'dart:async';
 import 'package:app/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:app/location_search_screen.dart';
+
+import 'components/location_list_tile.dart';
+import 'models/autocomplete_prediction.dart';
+import 'models/place_auto_complate_response.dart';
+import 'network_utillity.dart';
 
 class MapPage extends StatefulWidget {
   const MapPage({Key? key}) : super(key: key);
@@ -79,6 +85,31 @@ class MapPageState extends State<MapPage> {
     });
   }
 
+  List<AutocompletePrediction> placePredictions = [];
+
+  void placeAutoComplete(String query) async {
+    Uri uri = Uri.https(
+        "maps.googleapis.com",
+        'maps/api/place/autocomplete/json', //uneconder path
+        {
+          "input": query,
+          "key": apiKey,
+        });
+
+    String? response = await NetworkUtility.fetchUrl(uri);
+
+    if (response != null) {
+      PlaceAutocompleteResponse result =
+          PlaceAutocompleteResponse.parseAutocompleteResult(response);
+
+      if (result.predictions != null) {
+        setState(() {
+          placePredictions = result.predictions!;
+        });
+      }
+    }
+  }
+
   @override
   void initState() {
     // TODO: implement initState
@@ -93,14 +124,21 @@ class MapPageState extends State<MapPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          "Navigate",
-          style: TextStyle(color: Colors.black, fontSize: 16),
-        ),
+        title: Text("Navigate"),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.search),
+            onPressed: () {
+              showSearch(
+                  context: context, delegate: DestinationSearchDelegate());
+            },
+          )
+        ],
       ),
       body: currentLocation == null
           ? const Center(child: Text("Loading..."))
           : GoogleMap(
+              mapToolbarEnabled: true,
               initialCameraPosition: CameraPosition(
                   target: LatLng(
                       currentLocation!.latitude!, currentLocation!.longitude!),
@@ -134,5 +172,32 @@ class MapPageState extends State<MapPage> {
               }),
             ),
     );
+  }
+}
+
+class DestinationSearchDelegate extends SearchDelegate {
+  @override
+  List<Widget>? buildActions(BuildContext context) {
+    // TODO: implement buildActions
+    throw UnimplementedError();
+  }
+
+  @override
+  Widget? buildLeading(BuildContext context) {
+    return IconButton(
+        icon: const Icon(Icons.arrow_back),
+        onPressed: () => close(context, null));
+  }
+
+  @override
+  Widget buildResults(BuildContext context) {
+    // TODO: implement buildResults
+    throw UnimplementedError();
+  }
+
+  @override
+  Widget buildSuggestions(BuildContext context) {
+    // TODO: implement buildSuggestions
+    throw UnimplementedError();
   }
 }
