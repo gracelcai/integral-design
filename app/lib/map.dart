@@ -122,82 +122,41 @@ class MapPageState extends State<MapPage> {
   Offset _offset = Offset.zero;
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Navigate"),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.search),
-            onPressed: () {
-              showSearch(
-                  context: context, delegate: DestinationSearchDelegate());
+    return currentLocation == null
+        ? const Center(child: Text("Loading..."))
+        : GoogleMap(
+            mapToolbarEnabled: true,
+            initialCameraPosition: CameraPosition(
+                target: LatLng(
+                    currentLocation!.latitude!, currentLocation!.longitude!),
+                zoom: 14.5),
+            polylines: {
+              Polyline(
+                polylineId: PolylineId("route"),
+                points: polylineCoordinates,
+                color: primaryColor,
+                width: 6,
+              )
             },
-          )
-        ],
-      ),
-      body: currentLocation == null
-          ? const Center(child: Text("Loading..."))
-          : GoogleMap(
-              mapToolbarEnabled: true,
-              initialCameraPosition: CameraPosition(
-                  target: LatLng(
-                      currentLocation!.latitude!, currentLocation!.longitude!),
-                  zoom: 14.5),
-              polylines: {
-                Polyline(
-                  polylineId: PolylineId("route"),
-                  points: polylineCoordinates,
-                  color: primaryColor,
-                  width: 6,
-                )
-              },
-              markers: {
-                Marker(
-                    markerId: MarkerId("currentLocation"),
-                    icon: currentIcon,
-                    position: LatLng(currentLocation!.latitude!,
-                        currentLocation!.longitude!)),
-                Marker(
-                  markerId: MarkerId("source"),
-                  icon: sourceIcon,
-                  position: sourceLocation,
-                ),
-                Marker(
-                    markerId: MarkerId("destination"),
-                    icon: destinationIcon,
-                    position: destination)
-              },
-              onMapCreated: ((mapController) {
-                _controller.complete(mapController);
-              }),
-            ),
-    );
-  }
-}
-
-class DestinationSearchDelegate extends SearchDelegate {
-  @override
-  List<Widget>? buildActions(BuildContext context) {
-    // TODO: implement buildActions
-    throw UnimplementedError();
-  }
-
-  @override
-  Widget? buildLeading(BuildContext context) {
-    return IconButton(
-        icon: const Icon(Icons.arrow_back),
-        onPressed: () => close(context, null));
-  }
-
-  @override
-  Widget buildResults(BuildContext context) {
-    // TODO: implement buildResults
-    throw UnimplementedError();
-  }
-
-  @override
-  Widget buildSuggestions(BuildContext context) {
-    // TODO: implement buildSuggestions
-    throw UnimplementedError();
+            markers: {
+              Marker(
+                  markerId: MarkerId("currentLocation"),
+                  icon: currentIcon,
+                  position: LatLng(
+                      currentLocation!.latitude!, currentLocation!.longitude!)),
+              Marker(
+                markerId: MarkerId("source"),
+                icon: sourceIcon,
+                position: sourceLocation,
+              ),
+              Marker(
+                  markerId: MarkerId("destination"),
+                  icon: destinationIcon,
+                  position: destination)
+            },
+            onMapCreated: ((mapController) {
+              _controller.complete(mapController);
+            }),
+          );
   }
 }
